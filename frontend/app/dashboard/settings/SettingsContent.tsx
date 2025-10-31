@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
+import AppHeader from '@/components/AppHeader'
 
 type Profile = {
   display_name: string | null
@@ -55,23 +55,17 @@ export default function SettingsContent({ profile }: { profile: Profile | null }
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center text-gray-700 hover:text-gray-900 mb-2"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-        </div>
-      </header>
+      <AppHeader
+        displayName={profile?.display_name}
+        showBackButton={true}
+      />
 
       {/* Main Content */}
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
+          <p className="text-gray-600 mt-1">Manage your account information</p>
+        </div>
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Profile Info Section */}
           <div className="mb-8">
