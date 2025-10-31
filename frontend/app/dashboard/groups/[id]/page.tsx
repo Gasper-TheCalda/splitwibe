@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import GroupContent from './GroupContent'
+import GroupContent, { Expense, Member } from './GroupContent'
 
 export default async function GroupPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -49,6 +49,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
     .from('group_members')
     .select('user_id, profiles(id, display_name, email)')
     .eq('group_id', id)
+    .overrideTypes<Member[]>()
 
   // Fetch expenses with splits
   const { data: expenses } = await supabase
@@ -64,6 +65,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
     `)
     .eq('group_id', id)
     .order('date', { ascending: false })
+    .overrideTypes<Expense[]>()
 
   // Fetch all expense splits for this group
   const expenseIds = expenses?.map((e) => e.id) || []
