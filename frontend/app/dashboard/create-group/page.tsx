@@ -31,16 +31,19 @@ export default function CreateGroupPage() {
       if (inviteCodeError) throw inviteCodeError
 
       const inviteCode = inviteCodeData as string
+      const g = {
+        name,
+        description: description || null,
+        invite_code: inviteCode,
+        created_by: user.id,
+      };
+
+      console.debug(g);
 
       // Create the group
       const { data: group, error: groupError } = await supabase
         .from('groups')
-        .insert({
-          name,
-          description: description || null,
-          invite_code: inviteCode,
-          created_by: user.id,
-        })
+        .insert(g)
         .select()
         .single()
 
