@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import AppHeader from '@/components/AppHeader'
 
 export default function CreateGroupPage() {
   const [name, setName] = useState('')
@@ -11,8 +12,26 @@ export default function CreateGroupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [createdGroup, setCreatedGroup] = useState<{ id: string; invite_code: string } | null>(null)
+  const [displayName, setDisplayName] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
+
+  // Fetch user profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', user.id)
+          .single()
+
+        setDisplayName(profile?.display_name || null)
+      }
+    }
+    fetchProfile()
+  }, [supabase])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,8 +95,15 @@ export default function CreateGroupPage() {
 
   if (createdGroup) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
-        <div className="max-w-lg mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        {/* Header */}
+        <AppHeader
+          displayName={displayName}
+          showBackButton={true}
+        />
+
+        {/* Main Content */}
+        <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="text-center">
               {/* Success Icon */}
@@ -118,25 +144,22 @@ export default function CreateGroupPage() {
               </Link>
             </div>
           </div>
-        </div>
+        </main>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
-      <div className="max-w-lg mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <AppHeader
+        displayName={displayName}
+        showBackButton={true}
+      />
+
+      {/* Main Content */}
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center text-gray-700 hover:text-gray-900 mb-4"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </Link>
           <h1 className="text-3xl font-bold text-gray-900">Create a Group</h1>
           <p className="text-gray-600 mt-1">Start splitting expenses with friends</p>
         </div>
@@ -194,7 +217,7 @@ export default function CreateGroupPage() {
             </button>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
