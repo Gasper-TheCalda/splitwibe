@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -121,12 +122,22 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Password
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Password
+                </label>
+                {!isSignUp && (
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                  >
+                    Forgot?
+                  </Link>
+                )}
+              </div>
               <input
                 id="password"
                 type="password"

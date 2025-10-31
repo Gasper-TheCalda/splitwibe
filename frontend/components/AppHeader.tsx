@@ -29,34 +29,38 @@ export default function AppHeader({
   }
 
   return (
-    <header className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex justify-between items-center">
-          {/* Left side - Logo or Back button + Title */}
-          <div className="flex-1">
-            {showBackButton && (
+    <header className="bg-white shadow-sm h-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex justify-between items-center h-full">
+          {/* Left side - Back button or Logo */}
+          <div className="flex-shrink-0">
+            {showBackButton ? (
               <Link
                 href={backHref}
-                className="inline-flex items-center text-gray-700 hover:text-gray-900 mb-2"
+                className="inline-flex items-center text-gray-700 hover:text-gray-900"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to Dashboard
+                <span className="hidden sm:inline">Back</span>
               </Link>
-            )}
-            {title ? (
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-                {subtitle && <p className="text-gray-600 mt-1">{subtitle}</p>}
-              </div>
             ) : (
-              <h1 className="text-2xl font-bold text-gray-900">Splitwibe</h1>
+              <span className="text-2xl font-bold text-gray-900">Splitwibe</span>
+            )}
+          </div>
+
+          {/* Center - Title */}
+          <div className="flex-1 flex flex-col items-center justify-center px-4">
+            {title && (
+              <>
+                <h1 className="text-2xl font-bold text-gray-900 text-center">{title}</h1>
+                {subtitle && <p className="text-gray-600 text-sm text-center mt-1">{subtitle}</p>}
+              </>
             )}
           </div>
 
           {/* Right side - User menu */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-shrink-0">
             {displayName && (
               <Link
                 href="/dashboard/settings"
