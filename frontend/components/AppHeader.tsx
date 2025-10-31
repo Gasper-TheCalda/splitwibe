@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -19,10 +20,12 @@ export default function AppHeader({
   title,
   subtitle,
 }: AppHeaderProps) {
+  const [signingOut, setSigningOut] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
   const handleSignOut = async () => {
+    setSigningOut(true)
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
@@ -74,9 +77,10 @@ export default function AppHeader({
             )}
             <button
               onClick={handleSignOut}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+              disabled={signingOut}
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign Out
+              {signingOut ? 'Signing Out...' : 'Sign Out'}
             </button>
           </div>
         </div>

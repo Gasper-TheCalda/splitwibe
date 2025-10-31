@@ -13,6 +13,7 @@ type Profile = {
 export default function SettingsContent({ profile }: { profile: Profile | null }) {
   const [displayName, setDisplayName] = useState(profile?.display_name || '')
   const [loading, setLoading] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
@@ -45,6 +46,7 @@ export default function SettingsContent({ profile }: { profile: Profile | null }
   }
 
   const handleSignOut = async () => {
+    setSigningOut(true)
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
@@ -137,9 +139,10 @@ export default function SettingsContent({ profile }: { profile: Profile | null }
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Actions</h2>
             <button
               onClick={handleSignOut}
-              className="w-full bg-red-600 text-white py-2.5 rounded-lg font-medium hover:bg-red-700 focus:ring-4 focus:ring-red-200 transition"
+              disabled={signingOut}
+              className="w-full bg-red-600 text-white py-2.5 rounded-lg font-medium hover:bg-red-700 focus:ring-4 focus:ring-red-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign Out
+              {signingOut ? 'Signing Out...' : 'Sign Out'}
             </button>
           </div>
         </div>
