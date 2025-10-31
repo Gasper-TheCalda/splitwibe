@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import AppHeader from '@/components/AppHeader'
 
 type Group = {
   id: string
@@ -35,6 +35,11 @@ type Expense = {
   } | null
 }
 
+type Profile = {
+  display_name: string | null
+  email: string
+}
+
 export default function GroupContent({
   group,
   members,
@@ -42,6 +47,7 @@ export default function GroupContent({
   currentUserBalance,
   totalExpenses,
   currentUserId,
+  currentUserProfile,
 }: {
   group: Group
   members: Member[]
@@ -49,6 +55,7 @@ export default function GroupContent({
   currentUserBalance: number
   totalExpenses: number
   currentUserId: string
+  currentUserProfile: Profile | null
 }) {
   const [showAddExpense, setShowAddExpense] = useState(false)
   const [description, setDescription] = useState('')
@@ -131,26 +138,17 @@ export default function GroupContent({
     })
   }
 
+  const displayName = currentUserProfile?.display_name || currentUserProfile?.email?.split('@')[0] || 'User'
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center text-gray-700 hover:text-gray-900 mb-2"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{group.name}</h1>
-          {group.description && (
-            <p className="text-gray-600 mt-1">{group.description}</p>
-          )}
-        </div>
-      </header>
+      <AppHeader
+        displayName={displayName}
+        showBackButton={true}
+        title={group.name}
+        subtitle={group.description || undefined}
+      />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

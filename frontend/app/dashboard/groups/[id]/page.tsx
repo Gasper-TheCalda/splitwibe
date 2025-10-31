@@ -37,6 +37,13 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
     redirect('/dashboard')
   }
 
+  // Fetch current user's profile
+  const { data: currentUserProfile } = await supabase
+    .from('profiles')
+    .select('display_name, email')
+    .eq('id', user.id)
+    .single()
+
   // Fetch group members
   const { data: members } = await supabase
     .from('group_members')
@@ -103,6 +110,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
       currentUserBalance={currentUserBalance}
       totalExpenses={totalExpenses}
       currentUserId={user.id}
+      currentUserProfile={currentUserProfile}
     />
   )
 }
