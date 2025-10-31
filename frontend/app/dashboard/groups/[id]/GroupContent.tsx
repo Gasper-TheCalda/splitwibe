@@ -118,17 +118,16 @@ export default function GroupContent({
 
       if (splitsError) throw splitsError
 
-      // Reset form
+      // Reset form and close
       setDescription('')
       setAmount('')
       setPaidBy(currentUserId)
       setShowAddExpense(false)
 
-      // Refresh the page
+      // Refresh the page - loading will continue until refresh completes
       router.refresh()
     } catch (err: any) {
       setError(err.message || 'Failed to add expense')
-    } finally {
       setLoading(false)
     }
   }
@@ -148,11 +147,10 @@ export default function GroupContent({
 
       if (settlementError) throw settlementError
 
-      // Refresh the page
+      // Refresh the page - loading will continue until refresh completes
       router.refresh()
     } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Failed to record settlement')
-    } finally {
       setSettlingUserId(null)
     }
   }

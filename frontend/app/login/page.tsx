@@ -52,7 +52,6 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred')
-    } finally {
       setLoading(false)
     }
   }

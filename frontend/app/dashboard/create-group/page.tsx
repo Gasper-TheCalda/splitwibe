@@ -82,7 +82,6 @@ export default function CreateGroupPage() {
       router.push(`/dashboard/groups/${group.id}`)
     } catch (err: any) {
       setError(err.message || 'Failed to create group')
-    } finally {
       setLoading(false)
     }
   }
