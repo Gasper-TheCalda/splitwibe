@@ -78,6 +78,12 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
     allSplits = splits || []
   }
 
+  // Fetch settlements
+  const { data: settlements } = await supabase
+    .from('settlements')
+    .select('from_user, to_user, amount')
+    .eq('group_id', id)
+
   // Calculate balances
   const balances: Record<string, number> = {}
   members?.forEach((member) => {
@@ -97,10 +103,75 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
         balances[userId] -= Number(split.amount_owed)
       }
     })
+
+    // Add settlements received
+    settlements?.forEach((settlement) => {
+      if (settlement.to_user === userId) {
+        balances[userId] += Number(settlement.amount)
+      }
+    })
+
+    // Subtract settlements paid
+    settlements?.forEach((settlement) => {
+      if (settlement.from_user === userId) {
+        balances[userId] -= Number(settlement.amount)
+      }
+    })
   })
 
   const currentUserBalance = balances[user.id] || 0
   const totalExpenses = expenses?.reduce((sum, exp) => sum + Number(exp.amount), 0) || 0
+
+  // Calculate pairwise balances between current user and each member
+  // Positive = current user is owed money by this member
+  // Negative = current user owes money to this member
+  const memberBalances = members?.map((member) => {
+    const memberId = member.user_id
+    let pairwiseBalance = 0
+
+    // Skip if this is the current user
+    if (memberId === user.id) {
+      return {
+        userId: memberId,
+        displayName: member.profiles?.display_name || member.profiles?.email?.split('@')[0] || 'Unknown',
+        balance: 0,
+      }
+    }
+
+    // Calculate what member owes current user from expenses current user paid
+    allSplits.forEach((split) => {
+      const expense = expenses?.find((e) => e.id === split.expense_id)
+      if (expense && expense.paid_by === user.id && split.user_id === memberId) {
+        pairwiseBalance += Number(split.amount_owed)
+      }
+    })
+
+    // Subtract what current user owes member from expenses member paid
+    allSplits.forEach((split) => {
+      const expense = expenses?.find((e) => e.id === split.expense_id)
+      if (expense && expense.paid_by === memberId && split.user_id === user.id) {
+        pairwiseBalance -= Number(split.amount_owed)
+      }
+    })
+
+    // Adjust for settlements between current user and this member
+    settlements?.forEach((settlement) => {
+      if (settlement.from_user === user.id && settlement.to_user === memberId) {
+        // Current user paid this member
+        pairwiseBalance += Number(settlement.amount)
+      }
+      if (settlement.from_user === memberId && settlement.to_user === user.id) {
+        // This member paid current user
+        pairwiseBalance -= Number(settlement.amount)
+      }
+    })
+
+    return {
+      userId: memberId,
+      displayName: member.profiles?.display_name || member.profiles?.email?.split('@')[0] || 'Unknown',
+      balance: pairwiseBalance,
+    }
+  }).filter((m) => m.userId !== user.id) || []
 
   return (
     <GroupContent
@@ -111,6 +182,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
       totalExpenses={totalExpenses}
       currentUserId={user.id}
       currentUserProfile={currentUserProfile}
+      memberBalances={memberBalances}
     />
   )
 }

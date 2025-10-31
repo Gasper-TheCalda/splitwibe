@@ -40,6 +40,12 @@ type Profile = {
   email: string
 }
 
+type MemberBalance = {
+  userId: string
+  displayName: string
+  balance: number
+}
+
 export default function GroupContent({
   group,
   members,
@@ -48,6 +54,7 @@ export default function GroupContent({
   totalExpenses,
   currentUserId,
   currentUserProfile,
+  memberBalances,
 }: {
   group: Group
   members: Member[]
@@ -56,6 +63,7 @@ export default function GroupContent({
   totalExpenses: number
   currentUserId: string
   currentUserProfile: Profile | null
+  memberBalances: MemberBalance[]
 }) {
   const [showAddExpense, setShowAddExpense] = useState(false)
   const [description, setDescription] = useState('')
@@ -63,6 +71,7 @@ export default function GroupContent({
   const [paidBy, setPaidBy] = useState(currentUserId)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [settlingUserId, setSettlingUserId] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -123,6 +132,30 @@ export default function GroupContent({
     }
   }
 
+  const handleSettleBalance = async (toUserId: string, amount: number) => {
+    setSettlingUserId(toUserId)
+
+    try {
+      const { error: settlementError } = await supabase
+        .from('settlements')
+        .insert({
+          from_user: currentUserId,
+          to_user: toUserId,
+          group_id: group.id,
+          amount: Math.abs(amount),
+        })
+
+      if (settlementError) throw settlementError
+
+      // Refresh the page
+      router.refresh()
+    } catch (err: any) {
+      setError(err instanceof Error ? err.message : 'Failed to record settlement')
+    } finally {
+      setSettlingUserId(null)
+    }
+  }
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -152,7 +185,11 @@ export default function GroupContent({
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Left Content - Expenses and Summary */}
+          <div className="xl:col-span-3 space-y-6">
+            {/* Balance Summary Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Balance Summary */}
           <div className="bg-white rounded-2xl shadow-xl p-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">Your Balance</h3>
@@ -309,6 +346,72 @@ export default function GroupContent({
               })}
             </div>
           )}
+        </div>
+          </div>
+
+          {/* Right Sidebar - Member Balances */}
+          <div className="xl:col-span-1">
+            <div className="bg-white rounded-2xl shadow-xl p-6 sticky top-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Balances</h2>
+              <div className="space-y-3">
+                {memberBalances
+                  .filter((member) => member.userId !== currentUserId)
+                  .map((member) => (
+                    <div
+                      key={member.userId}
+                      className="p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center text-sm font-bold">
+                            {member.displayName.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 text-sm">
+                              {member.displayName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {member.balance === 0
+                                ? 'Settled up'
+                                : member.balance > 0
+                                ? 'They owe you'
+                                : 'You owe them'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p
+                            className={`text-sm font-bold ${
+                              member.balance === 0
+                                ? 'text-gray-500'
+                                : member.balance > 0
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                            }`}
+                          >
+                            {formatCurrency(Math.abs(member.balance))}
+                          </p>
+                        </div>
+                      </div>
+                      {member.balance < 0 && (
+                        <button
+                          onClick={() => handleSettleBalance(member.userId, member.balance)}
+                          disabled={settlingUserId === member.userId}
+                          className="w-full mt-2 px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {settlingUserId === member.userId ? 'Settling...' : 'Settle Up'}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                {memberBalances.filter((m) => m.userId !== currentUserId).length === 0 && (
+                  <p className="text-center text-gray-500 text-sm py-4">
+                    No other members yet
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
