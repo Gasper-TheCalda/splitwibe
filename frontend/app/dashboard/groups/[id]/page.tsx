@@ -106,17 +106,19 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
       }
     })
 
-    // Add settlements received
+    // Adjust for settlements received (someone paid you)
+    // When you receive a payment, you are owed LESS
     settlements?.forEach((settlement) => {
       if (settlement.to_user === userId) {
-        balances[userId] += Number(settlement.amount)
+        balances[userId] -= Number(settlement.amount)
       }
     })
 
-    // Subtract settlements paid
+    // Adjust for settlements paid (you paid someone)
+    // When you pay someone, you owe LESS
     settlements?.forEach((settlement) => {
       if (settlement.from_user === userId) {
-        balances[userId] -= Number(settlement.amount)
+        balances[userId] += Number(settlement.amount)
       }
     })
   })
