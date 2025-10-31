@@ -1,73 +1,57 @@
-import { createServerClient } from '@supabase/ssr'
+// middleware.ts
 import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
-  // Skip middleware if environment variables are not set
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return NextResponse.next()
-  }
+  // Skip if env is missing (nice for local/storybook)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !anon) return NextResponse.next()
 
   try {
-    let response = NextResponse.next({
-      request: {
-        headers: request.headers,
+    // Only forward headers — do NOT pass the whole request
+    const requestHeaders = new Headers(request.headers)
+    const response = NextResponse.next({ request: { headers: requestHeaders } })
+
+    const supabase = createServerClient(url, anon, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookies) {
+          // Set cookies ONLY on the response
+          cookies.forEach(({ name, value, options }) => {
+            response.cookies.set({
+              name,
+              value,
+              ...(options as CookieOptions | undefined),
+            })
+          })
+        },
       },
     })
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value)
-            )
-            response = NextResponse.next({
-              request,
-            })
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
-            )
-          },
-        },
-      }
-    )
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
-    // Redirect to login if not authenticated and trying to access protected routes
-    if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    // Auth gating
+    const { pathname } = request.nextUrl
+    if (!user && pathname.startsWith('/dashboard')) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
-
-    // Redirect to dashboard if authenticated and trying to access login
-    if (user && request.nextUrl.pathname === '/login') {
+    if (user && pathname === '/login') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
     return response
-  } catch (error) {
-    // If there's an error in middleware, just continue
-    console.error('Middleware error:', error)
+  } catch (err) {
+    console.error('Middleware error:', err)
     return NextResponse.next()
   }
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }
+
