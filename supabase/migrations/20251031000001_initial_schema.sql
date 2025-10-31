@@ -32,7 +32,7 @@ CREATE TRIGGER on_auth_user_created
 
 -- Create groups table
 CREATE TABLE public.groups (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT,
   invite_code TEXT NOT NULL UNIQUE,
@@ -46,7 +46,7 @@ CREATE INDEX idx_groups_invite_code ON public.groups(invite_code);
 
 -- Create group_members junction table
 CREATE TABLE public.group_members (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -59,7 +59,7 @@ CREATE INDEX idx_group_members_user_id ON public.group_members(user_id);
 
 -- Create expenses table
 CREATE TABLE public.expenses (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
   description TEXT NOT NULL,
   amount NUMERIC(10, 2) NOT NULL CHECK (amount > 0),
@@ -76,7 +76,7 @@ CREATE INDEX idx_expenses_date ON public.expenses(date DESC);
 
 -- Create expense_splits table
 CREATE TABLE public.expense_splits (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   expense_id UUID NOT NULL REFERENCES public.expenses(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles(id),
   amount_owed NUMERIC(10, 2) NOT NULL CHECK (amount_owed >= 0),
@@ -90,7 +90,7 @@ CREATE INDEX idx_expense_splits_user_id ON public.expense_splits(user_id);
 
 -- Create settlements table
 CREATE TABLE public.settlements (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   from_user UUID NOT NULL REFERENCES public.profiles(id),
   to_user UUID NOT NULL REFERENCES public.profiles(id),
   group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
