@@ -72,6 +72,7 @@ export default function GroupContent({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [settlingUserId, setSettlingUserId] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -171,6 +172,12 @@ export default function GroupContent({
     })
   }
 
+  const copyInviteCode = () => {
+    navigator.clipboard.writeText(group.invite_code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   const displayName = currentUserProfile?.display_name || currentUserProfile?.email?.split('@')[0] || 'User'
 
   return (
@@ -188,6 +195,41 @@ export default function GroupContent({
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           {/* Left Content - Expenses and Summary */}
           <div className="xl:col-span-3 space-y-6">
+            {/* Invite Code Card */}
+            <div className="bg-white rounded-2xl shadow-xl p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-1">Invite Code</h3>
+                  <p className="text-xs text-gray-500">Share this code to invite others to the group</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <code className="text-2xl font-bold text-indigo-600 tracking-wider">
+                    {group.invite_code}
+                  </code>
+                  <button
+                    onClick={copyInviteCode}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition relative group"
+                    title="Copy to clipboard"
+                  >
+                    {copied ? (
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                    {copied && (
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs py-1 px-2 rounded whitespace-nowrap">
+                        Copied!
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Balance Summary Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Balance Summary */}
