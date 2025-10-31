@@ -78,75 +78,13 @@ export default function CreateGroupPage() {
 
       if (memberError) throw memberError
 
-      // Show success with invite code
-      setCreatedGroup({ id: group.id, invite_code: inviteCode })
+      // Redirect to the group page
+      router.push(`/dashboard/groups/${group.id}`)
     } catch (err: any) {
       setError(err.message || 'Failed to create group')
     } finally {
       setLoading(false)
     }
-  }
-
-  const copyInviteCode = () => {
-    if (createdGroup) {
-      navigator.clipboard.writeText(createdGroup.invite_code)
-    }
-  }
-
-  if (createdGroup) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        {/* Header */}
-        <AppHeader
-          displayName={displayName}
-          showBackButton={true}
-        />
-
-        {/* Main Content */}
-        <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="text-center">
-              {/* Success Icon */}
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Group Created!</h2>
-              <p className="text-gray-600 mb-6">Share this invite code with others to join</p>
-
-              {/* Invite Code Display */}
-              <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                <p className="text-sm text-gray-600 mb-2">Invite Code</p>
-                <div className="flex items-center justify-center gap-3">
-                  <code className="text-3xl font-bold text-indigo-600 tracking-wider">
-                    {createdGroup.invite_code}
-                  </code>
-                  <button
-                    onClick={copyInviteCode}
-                    className="p-2 hover:bg-gray-200 rounded-lg transition"
-                    title="Copy to clipboard"
-                  >
-                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <Link
-                href="/dashboard"
-                className="block w-full bg-indigo-600 text-white py-2.5 rounded-lg font-medium hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-200 transition"
-              >
-                Go to Dashboard
-              </Link>
-            </div>
-          </div>
-        </main>
-      </div>
-    )
   }
 
   return (
